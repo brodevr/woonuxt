@@ -36,3 +36,21 @@ export class GraphQLResponseError extends AppError {
     this.name = 'GraphQLResponseError'
   }
 }
+
+/** Raised when a WooCommerce Store API request fails. */
+export class StoreApiError extends AppError {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    options?: { cause?: unknown; code?: string },
+  ) {
+    super(message, options)
+    this.name = 'StoreApiError'
+    if (options?.code) {
+      this.code = options.code
+    }
+  }
+
+  /** WooCommerce error code (e.g. woocommerce_rest_cart_invalid_key), if any. */
+  code?: string
+}

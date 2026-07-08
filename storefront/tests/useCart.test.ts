@@ -66,10 +66,24 @@ describe('useCart', () => {
   it('should remove item when quantity is set to 0', () => {
     const { addToCart, updateQuantity, items } = useCart()
     const product = mockProducts[0]
-    
+
     addToCart(product)
     updateQuantity(product.id, 0)
-    
+
     expect(items.value).toHaveLength(0)
+  })
+
+  it('should calculate total with shipping cost per method', () => {
+    const { addToCart, subtotal, total, shippingMethod } = useCart()
+    const product = { ...mockProducts[0], price: '100' }
+
+    addToCart(product, 2)
+    expect(subtotal.value).toBe(200)
+
+    shippingMethod.value = 'flat_rate'
+    expect(total.value).toBe(5200) // 200 + 5000 flat rate
+
+    shippingMethod.value = 'local_pickup'
+    expect(total.value).toBe(200) // 200 + 0 pickup
   })
 })

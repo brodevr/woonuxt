@@ -9,6 +9,8 @@ export default defineNuxtConfig({
     compatibilityVersion: 3,
   },
 
+  modules: ['@pinia/nuxt'],
+
   // Global CSS
   css: ['~/assets/css/main.css'],
 

@@ -14,6 +14,10 @@ describe('ProductCard Component', () => {
 
     // Check name
     expect(wrapper.text()).toContain(product.name)
+    // Price is rendered via the shared <Price> primitive
+    const priceEl = wrapper.find('.product-card__price-current')
+    expect(priceEl.exists()).toBe(true)
+    expect(priceEl.text()).toBe(`$${Number(product.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
     // Image is present with correct src
     const img = wrapper.find('img')
     expect(img.exists()).toBe(true)

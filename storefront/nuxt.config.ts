@@ -11,6 +11,13 @@ export default defineNuxtConfig({
 
   modules: ['@pinia/nuxt'],
 
+  // Register shared UI primitives (components/ui, e.g. <Price>) without a
+  // path prefix; the rest of components/ keeps default auto-import.
+  components: [
+    { path: '~/components/ui', pathPrefix: false },
+    '~/components',
+  ],
+
   // Global CSS
   css: ['~/assets/css/main.css'],
 

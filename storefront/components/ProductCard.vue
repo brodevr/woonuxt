@@ -21,8 +21,8 @@
     <div class="product-card__info">
       <h3 class="product-card__name">{{ product.name }}</h3>
       <div class="product-card__price">
-        <span v-if="product.salePrice" class="product-card__price-old">{{ formatPrice(product.regularPrice!) }}</span>
-        <span class="product-card__price-current">{{ formatPrice(product.price) }}</span>
+        <Price v-if="product.salePrice" class="product-card__price-old" :amount="product.regularPrice!" />
+        <Price class="product-card__price-current" :amount="product.price" />
       </div>
     </div>
   </NuxtLink>
@@ -35,7 +35,6 @@ const props = defineProps<{
   product: Product
 }>()
 
-const { formatPrice } = useCurrency()
 const { addToCart } = useCart()
 
 function handleQuickAdd() {

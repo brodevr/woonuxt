@@ -97,11 +97,21 @@ const { getProduct, getProducts } = useWooNuxt()
 const slug = route.params.slug as string
 const { data: product } = await useAsyncData(`product-${slug}`, () => getProduct(slug))
 
-if (product.value) {
-  useHead({
-    title: `${product.value.name} — Cosmetics`,
-  })
-}
+// Structured per-product SEO. Reactive getters so tags follow the product.
+// (Full Yoast head via the plugin's `fullYoastHead` field can layer on top
+// once a live backend + head-string parser are wired — Phase 5/SEO work.)
+useSeoMeta({
+  title: () => (product.value ? `${product.value.name} — Cosmetics` : 'Product not found'),
+  description: () =>
+    product.value?.shortDescription || product.value?.description || '',
+  ogType: 'website',
+  ogTitle: () => product.value?.name || '',
+  ogDescription: () => product.value?.shortDescription || '',
+  ogImage: () => product.value?.image || '',
+  twitterCard: 'summary_large_image',
+  twitterTitle: () => product.value?.name || '',
+  twitterImage: () => product.value?.image || '',
+})
 
 const activeImage = ref(product.value?.gallery[0] || product.value?.image || '')
 const quantity = ref(1)

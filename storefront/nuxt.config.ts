@@ -40,9 +40,8 @@ export default defineNuxtConfig({
           href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap',
         },
       ],
-      script: [
-        { src: 'https://sdk.mercadopago.com/js/v2', async: true, defer: true }
-      ],
+      // Mercado Pago SDK is loaded only on the checkout page (see
+      // pages/checkout.vue), not globally, to keep it off catalog pages.
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

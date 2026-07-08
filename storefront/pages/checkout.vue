@@ -158,7 +158,11 @@ const { formatPrice } = useCurrency()
 const config = useRuntimeConfig()
 
 useHead({
-  title: 'Checkout — Cosmetics'
+  title: 'Checkout — Cosmetics',
+  // Load the Mercado Pago SDK only on checkout (not on catalog pages).
+  script: [
+    { src: 'https://sdk.mercadopago.com/js/v2', async: true, defer: true },
+  ],
 })
 
 const currentStep = ref(1)

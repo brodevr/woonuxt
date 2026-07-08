@@ -1,5 +1,4 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
-console.log('NUXT_PUBLIC_GRAPHQL_URL in config:', process.env.NUXT_PUBLIC_GRAPHQL_URL)
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },

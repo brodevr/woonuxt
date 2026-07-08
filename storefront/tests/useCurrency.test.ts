@@ -5,8 +5,8 @@ import { mockSettings } from '../data/mock'
 describe('useCurrency', () => {
   it('should return correct currency symbol and code', () => {
     const { currencySymbol, currencyCode } = useCurrency()
-    expect(currencySymbol).toBe(mockSettings.currencySymbol)
-    expect(currencyCode).toBe(mockSettings.currencyCode)
+    expect(currencySymbol.value).toBe(mockSettings.currencySymbol)
+    expect(currencyCode.value).toBe(mockSettings.currencyCode)
   })
 
   it('should format numeric price correctly', () => {

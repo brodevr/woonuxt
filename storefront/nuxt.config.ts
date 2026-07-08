@@ -9,7 +9,15 @@ export default defineNuxtConfig({
     compatibilityVersion: 3,
   },
 
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', '@nuxt/image'],
+
+  // Image optimization. Provider auto-detects (Vercel in prod, IPX locally).
+  // Remote source hosts must be allowlisted.
+  image: {
+    domains: ['images.unsplash.com'],
+    quality: 80,
+    format: ['webp'],
+  },
 
   // Register shared UI primitives (components/ui, e.g. <Price>) without a
   // path prefix; the rest of components/ keeps default auto-import.

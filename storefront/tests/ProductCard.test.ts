@@ -18,10 +18,10 @@ describe('ProductCard Component', () => {
     const priceEl = wrapper.find('.product-card__price-current')
     expect(priceEl.exists()).toBe(true)
     expect(priceEl.text()).toBe(`$${Number(product.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`)
-    // Image is present with correct src
+    // Image is rendered via <NuxtImg> (optimized URL wraps the source)
     const img = wrapper.find('img')
     expect(img.exists()).toBe(true)
-    expect(img.attributes('src')).toBe(product.image)
+    expect(img.attributes('src')).toContain('images.unsplash.com/photo-1567538096630')
   })
 
   it('shows sale badge if product is on sale', async () => {

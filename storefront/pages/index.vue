@@ -3,11 +3,13 @@
     <!-- Edge to Edge Hero -->
     <section class="hero-kylie">
       <div class="hero-kylie__image-container">
-        <img
+        <NuxtImg
           src="https://images.unsplash.com/photo-1617220556200-f94dff9c20a6?w=1200&h=1600&fit=crop"
           alt="Campaign Hero"
           class="hero-kylie__image"
           loading="eager"
+          preload
+          sizes="100vw"
         />
         <div class="hero-kylie__overlay"></div>
       </div>
@@ -30,7 +32,7 @@
           class="kylie-cat-card"
         >
           <div class="kylie-cat-image-wrap">
-            <img :src="cat.image" :alt="cat.name" loading="lazy" />
+            <NuxtImg :src="cat.image" :alt="cat.name" loading="lazy" sizes="200px md:280px" />
           </div>
           <span class="kylie-cat-name">{{ cat.name }}</span>
         </NuxtLink>

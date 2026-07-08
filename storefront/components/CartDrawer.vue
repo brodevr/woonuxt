@@ -31,7 +31,7 @@
       <div v-else class="drawer__items">
         <div v-for="item in items" :key="item.product.id" class="drawer__item">
           <NuxtLink :to="`/product/${item.product.slug}`" class="drawer__item-image" @click="closeDrawer">
-            <img :src="item.product.image" :alt="item.product.name" />
+            <NuxtImg :src="item.product.image" :alt="item.product.name" loading="lazy" />
           </NuxtLink>
           <div class="drawer__item-info">
             <NuxtLink :to="`/product/${item.product.slug}`" class="drawer__item-name" @click="closeDrawer">

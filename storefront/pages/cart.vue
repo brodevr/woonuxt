@@ -31,7 +31,7 @@
           <div v-for="item in items" :key="item.product.id" class="cart-item animate-fade-in-up">
             <div class="cart-item__product">
               <NuxtLink :to="`/product/${item.product.slug}`" class="cart-item__image">
-                <img :src="item.product.image" :alt="item.product.name" />
+                <NuxtImg :src="item.product.image" :alt="item.product.name" loading="lazy" />
               </NuxtLink>
               <div class="cart-item__info">
                 <NuxtLink :to="`/product/${item.product.slug}`" class="cart-item__name">{{ item.product.name }}</NuxtLink>

@@ -12,6 +12,7 @@
     "graphql:codegen": "graphql-codegen --config codegen.ts"
   },
   "dependencies": {
+    "@nuxt/image": "^2.0.0",
     "@pinia/nuxt": "^0.11.3",
     "nuxt": "^4.4.8",
     "pinia": "^3.0.4",

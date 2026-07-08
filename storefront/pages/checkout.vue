@@ -119,7 +119,7 @@
           <div class="k-summary-items">
             <div v-for="item in items" :key="item.product.id" class="k-summary-item">
               <div class="k-summary-item-image">
-                <img :src="item.product.image" :alt="item.product.name" />
+                <NuxtImg :src="item.product.image" :alt="item.product.name" loading="lazy" />
                 <span class="k-summary-item-qty">{{ item.quantity }}</span>
               </div>
               <div class="k-summary-item-info">

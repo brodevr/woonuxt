@@ -1,11 +1,12 @@
 <template>
   <NuxtLink :to="`/product/${product.slug}`" class="product-card">
     <div class="product-card__image-wrap">
-      <img
+      <NuxtImg
         :src="product.image"
         :alt="product.name"
         class="product-card__image"
         loading="lazy"
+        sizes="sm:50vw md:33vw lg:25vw"
       />
       <!-- Sale badge -->
       <span v-if="product.salePrice" class="product-card__sale-badge">Sale</span>

@@ -3,7 +3,7 @@
     <div class="kylie-p-layout">
       <!-- Image Half -->
       <div class="kylie-p-image-wrap animate-fade-in">
-        <img :src="activeImage" :alt="product.name" class="kylie-p-img" />
+        <NuxtImg :src="activeImage" :alt="product.name" class="kylie-p-img" sizes="100vw lg:55vw" />
         <span v-if="product.salePrice" class="kylie-p-sale">SALE</span>
       </div>
 

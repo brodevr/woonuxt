@@ -50,6 +50,21 @@ export default defineNuxtConfig({
     pageTransition: { name: 'page', mode: 'out-in' },
   },
 
+  // Per-route caching (docs/architecture.md §1).
+  // Catalog/content: SWR (serve stale, revalidate in background) — absorbs
+  // read traffic at the edge. On Vercel `swr` maps to ISR-style caching.
+  // Personal routes (cart/checkout/account) and APIs: never cached.
+  routeRules: {
+    '/': { swr: 600 },
+    '/shop': { swr: 300 },
+    '/shop/**': { swr: 300 },
+    '/product/**': { swr: 300 },
+    '/cart': { headers: { 'cache-control': 'no-cache, no-store, must-revalidate' } },
+    '/checkout': { headers: { 'cache-control': 'no-cache, no-store, must-revalidate' } },
+    '/account/**': { headers: { 'cache-control': 'no-cache, no-store, must-revalidate' } },
+    '/api/**': { cache: false, headers: { 'cache-control': 'no-store' } },
+  },
+
   // Runtime config
   runtimeConfig: {
     public: {

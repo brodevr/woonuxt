@@ -1,0 +1,169 @@
+<?php
+
+/**
+ * GraphQL settings schema registration.
+ *
+ * @since 2.0.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+/**
+ * Register settings-related GraphQL object types and fields.
+ *
+ * @since 2.0.0
+ * @return void
+ */
+function woonuxt_register_graphql_settings_types()
+{
+    register_graphql_object_type('woonuxtOptionsGlobalAttributes', [
+        'description' => __('Woonuxt Global attributes for filtering', 'woonuxt'),
+        'fields'      => [
+            'label'         => ['type' => 'String'],
+            'slug'          => ['type' => 'String'],
+            'showCount'     => ['type' => 'Boolean'],
+            'hideEmpty'     => ['type' => 'Boolean'],
+            'openByDefault' => ['type' => 'Boolean'],
+        ],
+    ]);
+
+    register_graphql_object_type('woonuxtOptionsStripeSettings', [
+        'fields' => [
+            'enabled'                       => ['type' => 'String'],
+            'testmode'                      => ['type' => 'String'],
+            'test_publishable_key'          => ['type' => 'String'],
+            'publishable_key'               => ['type' => 'String'],
+            'active_publishable_key'        => ['type' => 'String'],
+            'account_id'                    => ['type' => 'String'],
+            'apple_pay_merchant_identifier' => ['type' => 'String'],
+        ],
+    ]);
+
+    register_graphql_object_type('woonuxtOptionsPayPalSettings', [
+        'fields' => [
+            'enabled'      => ['type' => 'String'],
+            'sandbox'      => ['type' => 'String'],
+            'email'        => ['type' => 'String'],
+        ],
+    ]);
+
+    register_graphql_object_type('wooNuxtSocialItems', [
+        'description' => __('Woonuxt Social Items', 'woonuxt'),
+        'fields'      => [
+            'provider' => ['type' => 'String'],
+            'url'      => ['type' => 'String'],
+            'handle'   => ['type' => 'String'],
+        ],
+    ]);
+
+    register_graphql_object_type('woonuxtOptions', [
+        'description' => __('Woonuxt Settings', 'woonuxt'),
+        'fields'      => [
+            'primary_color'              => ['type' => 'String'],
+            'logo'                       => ['type' => 'String'],
+            'maxPrice'                   => ['type' => 'Int'],
+            'productsPerPage'            => ['type' => 'Int'],
+            'frontEndUrl'                => ['type' => 'String'],
+            'domain'                     => ['type' => 'String'],
+            'global_attributes'          => ['type' => ['list_of' => 'woonuxtOptionsGlobalAttributes']],
+            'publicIntrospectionEnabled' => ['type' => 'String', 'default' => 'off'],
+            'stripeSettings'             => ['type' => 'woonuxtOptionsStripeSettings'],
+            'paypalSettings'             => ['type' => 'woonuxtOptionsPayPalSettings'],
+            'currencyCode'               => ['type' => 'String'],
+            'currencySymbol'             => ['type' => 'String'],
+            'wooCommerceSettingsVersion' => ['type' => 'String'],
+            'wooNuxtSEO'                 => ['type' => ['list_of' => 'wooNuxtSocialItems']],
+        ],
+    ]);
+
+    register_graphql_field('RootQuery', 'woonuxtSettings', [
+        'type'    => 'woonuxtOptions',
+        'resolve' => function () {
+            $options = get_option('woonuxt_options');
+            if (!is_array($options)) {
+                $options = [];
+            }
+
+            if (function_exists('woonuxt_get_default_options')) {
+                $options = wp_parse_args($options, woonuxt_get_default_options());
+            }
+
+            $gql_settings = get_option('graphql_general_settings');
+            if (!is_array($gql_settings)) {
+                $gql_settings = [];
+            }
+
+            $options['publicIntrospectionEnabled'] = $gql_settings['public_introspection_enabled'] ?? 'off';
+            $is_woocommerce_active                 = class_exists('WooCommerce');
+
+            // Get max price efficiently.
+            if ($is_woocommerce_active && function_exists('wc_get_product')) {
+                $loop = new WP_Query([
+                    'post_type'      => 'product',
+                    'posts_per_page' => 1,
+                    'orderby'        => 'meta_value_num',
+                    'order'          => 'DESC',
+                    'meta_key'       => '_price',
+                    'meta_query'     => [
+                        [
+                            'key'     => '_price',
+                            'value'   => 0,
+                            'compare' => '>',
+                            'type'    => 'NUMERIC',
+                        ],
+                    ],
+                    'fields' => 'ids',
+                ]);
+
+                if ($loop->have_posts()) {
+                    $product_id = $loop->posts[0];
+                    $product    = wc_get_product($product_id);
+                    if ($product) {
+                        $options['maxPrice'] = ceil($product->get_price());
+                    }
+                }
+                wp_reset_postdata();
+            }
+
+            $stripe_settings = get_option('woocommerce_stripe_settings');
+            if (!is_array($stripe_settings)) {
+                $stripe_settings = [];
+            }
+
+            $is_stripe_test_mode  = ($stripe_settings['testmode'] ?? 'no') === 'yes';
+            $test_publishable_key = $stripe_settings['test_publishable_key'] ?? '';
+            $publishable_key      = $stripe_settings['publishable_key'] ?? '';
+
+            $options['stripeSettings'] = [
+                'enabled'                       => $stripe_settings['enabled'] ?? 'no',
+                'testmode'                      => $stripe_settings['testmode'] ?? 'no',
+                'test_publishable_key'          => $test_publishable_key,
+                'publishable_key'               => $publishable_key,
+                'active_publishable_key'        => $is_stripe_test_mode ? $test_publishable_key : $publishable_key,
+                'account_id'                    => $stripe_settings['account_id'] ?? '',
+                'apple_pay_merchant_identifier' => $options['stripe_apple_pay_merchant_identifier'] ?? '',
+            ];
+
+            $paypal_settings             = get_option('woocommerce_paypal_settings');
+            $paypal_settings             = is_array($paypal_settings) ? $paypal_settings : [];
+            $options['paypalSettings']   = [
+                'enabled' => $paypal_settings['enabled']  ?? 'no',
+                'sandbox' => $paypal_settings['testmode'] ?? 'no',
+                'email'   => $paypal_settings['email']    ?? '',
+            ];
+
+            if (!function_exists('get_woocommerce_currency') && function_exists('WC')) {
+                require_once WC()->plugin_path() . '/includes/wc-core-functions.php';
+            }
+
+            $options['currencyCode']               = function_exists('get_woocommerce_currency') ? get_woocommerce_currency() : 'USD';
+            $options['currencySymbol']             = function_exists('get_woocommerce_currency_symbol') ? html_entity_decode(get_woocommerce_currency_symbol()) : '$';
+            $options['domain']                     = wp_parse_url(home_url(), PHP_URL_HOST);
+            $options['wooCommerceSettingsVersion'] = WOONUXT_SETTINGS_VERSION;
+            $options['wooNuxtSEO']                 = $options['wooNuxtSEO'] ?? [];
+            return $options;
+        },
+    ]);
+}

@@ -1,0 +1,5 @@
+.DS_Store
+.vscode
+.github/*
+!.github/workflows/
+!.github/workflows/**

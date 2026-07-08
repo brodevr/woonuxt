@@ -77,6 +77,8 @@ export function createMockSearchProvider(
         filtered = [...filtered].sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
       } else if (sort === 'price-desc') {
         filtered = [...filtered].sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
+      } else if (sort === 'name') {
+        filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name))
       }
 
       const total = filtered.length

@@ -8,7 +8,7 @@
  */
 import type { Product } from '~/data/mock'
 
-export type SearchSort = 'relevance' | 'price-asc' | 'price-desc'
+export type SearchSort = 'relevance' | 'price-asc' | 'price-desc' | 'name'
 
 export interface SearchFilters {
   category?: string

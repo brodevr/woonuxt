@@ -4,7 +4,7 @@
       <!-- Page header -->
       <div class="shop-page__header animate-fade-in-up">
         <h1 class="shop-page__title">Shop</h1>
-        <p class="shop-page__count">{{ filteredProducts.length }} products</p>
+        <p class="shop-page__count">{{ products.length }} products</p>
       </div>
 
       <div class="shop-page__layout">
@@ -20,16 +20,16 @@
               >
                 <input type="radio" name="category" :checked="!activeCategory" @change="activeCategory = ''" />
                 <span>All</span>
-                <span class="filter-option__count">{{ allProducts.length }}</span>
+                <span class="filter-option__count">{{ allCount }}</span>
               </label>
               <label
                 v-for="cat in categories"
-                :key="cat.slug"
+                :key="cat.value"
                 class="filter-option"
-                :class="{ 'filter-option--active': activeCategory === cat.slug }"
+                :class="{ 'filter-option--active': activeCategory === cat.value }"
               >
-                <input type="radio" name="category" :checked="activeCategory === cat.slug" @change="activeCategory = cat.slug" />
-                <span>{{ cat.name }}</span>
+                <input type="radio" name="category" :checked="activeCategory === cat.value" @change="activeCategory = cat.value" />
+                <span>{{ cat.label }}</span>
                 <span class="filter-option__count">{{ cat.count }}</span>
               </label>
             </div>
@@ -56,10 +56,10 @@
         <div class="shop-page__mobile-bar hide-desktop">
           <select v-model="activeCategory" class="input" style="flex: 1;">
             <option value="">All Categories</option>
-            <option v-for="cat in categories" :key="cat.slug" :value="cat.slug">{{ cat.name }}</option>
+            <option v-for="cat in categories" :key="cat.value" :value="cat.value">{{ cat.label }}</option>
           </select>
           <select v-model="sortBy" class="input" style="flex: 1;">
-            <option value="default">Sort by</option>
+            <option value="relevance">Sort by</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
             <option value="name">Name A-Z</option>
@@ -85,7 +85,7 @@
           <!-- Grid -->
           <div class="product-grid stagger">
             <ProductCard
-              v-for="product in filteredProducts"
+              v-for="product in products"
               :key="product.id"
               :product="product"
               class="animate-fade-in-up"
@@ -93,7 +93,7 @@
           </div>
 
           <!-- Empty state -->
-          <div v-if="filteredProducts.length === 0" class="shop-page__empty">
+          <div v-if="products.length === 0" class="shop-page__empty">
             <p>No products found matching your filters.</p>
             <button class="btn btn--outline" @click="resetFilters">Clear Filters</button>
           </div>
@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { useWooNuxt } from '~/composables/useWooNuxt'
+import type { SearchSort } from '~/modules/search/types'
 
 useHead({
   title: 'Shop — Store',
@@ -114,67 +114,59 @@ useHead({
 })
 
 const route = useRoute()
-const { getProducts, getCategories } = useWooNuxt()
-
-const { data: _products } = await useAsyncData('all-products', () => getProducts())
-const { data: _categories } = await useAsyncData('categories', () => getCategories())
-
-const allProducts = computed(() => _products.value || [])
-const categories = computed(() => _categories.value || [])
-
+const { search } = useSearch()
 
 const activeCategory = ref((route.query.category as string) || '')
 const activePriceRange = ref('All')
-const sortBy = ref('default')
+const sortBy = ref<SearchSort>('relevance')
 
-const priceRanges = [
-  { label: 'All', min: 0, max: Infinity },
+// Price presets map to min/max search filters (max is exclusive of the next band).
+const priceRanges: { label: string; min?: number; max?: number }[] = [
+  { label: 'All' },
   { label: 'Under $100', min: 0, max: 100 },
   { label: '$100 – $300', min: 100, max: 300 },
   { label: '$300 – $500', min: 300, max: 500 },
-  { label: '$500+', min: 500, max: Infinity },
+  { label: '$500+', min: 500 },
 ]
 
-const sortOptions = [
-  { label: 'Default', value: 'default' },
+const sortOptions: { label: string; value: SearchSort }[] = [
+  { label: 'Default', value: 'relevance' },
   { label: 'Price ↑', value: 'price-asc' },
   { label: 'Price ↓', value: 'price-desc' },
   { label: 'Name', value: 'name' },
 ]
 
-const filteredProducts = computed(() => {
-  let products = [...allProducts.value]
-
-  // Category filter
-  if (activeCategory.value) {
-    products = products.filter(p => p.categorySlug === activeCategory.value)
-  }
-
-  // Price filter
-  const range = priceRanges.find(r => r.label === activePriceRange.value)
-  if (range && range.label !== 'All') {
-    products = products.filter(p => {
-      const price = parseFloat(p.price)
-      return price >= range.min && price < range.max
+// Browse the catalog through the search engine (empty query = discovery),
+// so filtering/sorting/faceting happen in the engine, not in the browser.
+const { data: result } = await useAsyncData(
+  () => `shop-${activeCategory.value}-${activePriceRange.value}-${sortBy.value}`,
+  () => {
+    const range = priceRanges.find((r) => r.label === activePriceRange.value)
+    return search({
+      query: '',
+      filters: {
+        category: activeCategory.value || undefined,
+        minPrice: range?.min,
+        maxPrice: range?.max,
+      },
+      sort: sortBy.value,
+      page: 1,
+      perPage: 100,
     })
-  }
+  },
+  { watch: [activeCategory, activePriceRange, sortBy] },
+)
 
-  // Sort
-  if (sortBy.value === 'price-asc') {
-    products.sort((a, b) => parseFloat(a.price) - parseFloat(b.price))
-  } else if (sortBy.value === 'price-desc') {
-    products.sort((a, b) => parseFloat(b.price) - parseFloat(a.price))
-  } else if (sortBy.value === 'name') {
-    products.sort((a, b) => a.name.localeCompare(b.name))
-  }
-
-  return products
-})
+const products = computed(() => result.value?.hits || [])
+// Category facets come from the result (computed before the category filter),
+// so the sidebar always lists every category with its count.
+const categories = computed(() => result.value?.facets.categories || [])
+const allCount = computed(() => categories.value.reduce((sum, c) => sum + c.count, 0))
 
 function resetFilters() {
   activeCategory.value = ''
   activePriceRange.value = 'All'
-  sortBy.value = 'default'
+  sortBy.value = 'relevance'
 }
 </script>
 

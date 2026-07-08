@@ -68,6 +68,11 @@ describe('MockSearchProvider', () => {
     expect(desc.hits.map((h) => h.price)).toEqual(['300', '200', '100', '50'])
   })
 
+  it('sorts by name', async () => {
+    const res = await provider.search({ query: '', sort: 'name' })
+    expect(res.hits.map((h) => h.name)).toEqual(['Floor Lamp', 'Nordic Chair', 'Oak Table', 'Table Lamp'])
+  })
+
   it('paginates', async () => {
     const p1 = await provider.search({ query: '', sort: 'price-asc', page: 1, perPage: 2 })
     expect(p1.hits.map((h) => h.price)).toEqual(['50', '100'])

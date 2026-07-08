@@ -25,7 +25,8 @@ export interface SearchParams {
 }
 
 export interface FacetCount {
-  value: string
+  value: string // slug used for filtering
+  label: string // human-readable label
   count: number
 }
 

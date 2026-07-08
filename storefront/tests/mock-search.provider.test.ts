@@ -55,8 +55,10 @@ describe('MockSearchProvider', () => {
 
   it('computes category facet counts before the category filter', async () => {
     const res = await provider.search({ query: '', filters: { category: 'lighting' } })
-    const counts = Object.fromEntries(res.facets.categories.map((f) => [f.value, f.count]))
+    const counts = Object.fromEntries(res.facets.categories.map((f) => [f.label, f.count]))
     expect(counts).toEqual({ Furniture: 2, Lighting: 2 })
+    // facet.value is the slug used for filtering
+    expect(res.facets.categories.map((f) => f.value).sort()).toEqual(['furniture', 'lighting'])
   })
 
   it('sorts by price ascending and descending', async () => {

@@ -33,14 +33,18 @@ function inPriceRange(product: Product, min?: number, max?: number): boolean {
 }
 
 function categoryFacets(products: Product[]): FacetCount[] {
-  const counts = new Map<string, { value: string; count: number }>()
+  const counts = new Map<string, FacetCount>()
   for (const p of products) {
     if (!p.categorySlug) continue
     const existing = counts.get(p.categorySlug)
     if (existing) {
       existing.count++
     } else {
-      counts.set(p.categorySlug, { value: p.category || p.categorySlug, count: 1 })
+      counts.set(p.categorySlug, {
+        value: p.categorySlug,
+        label: p.category || p.categorySlug,
+        count: 1,
+      })
     }
   }
   return [...counts.values()].sort((a, b) => b.count - a.count)

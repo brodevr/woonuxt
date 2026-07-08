@@ -12,6 +12,11 @@
         <NuxtLink to="/shop" class="header__link">Shop</NuxtLink>
       </nav>
 
+      <!-- Search -->
+      <div class="header__search hide-mobile">
+        <SearchBox />
+      </div>
+
       <!-- Actions -->
       <div class="header__actions">
         <!-- Cart button -->
@@ -101,6 +106,13 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--space-8);
+}
+
+.header__search {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-6);
 }
 
 .header__link {

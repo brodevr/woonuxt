@@ -6,6 +6,7 @@
     </main>
     <AppFooter />
     <CartDrawer />
+    <ToastHost />
   </div>
 </template>
 

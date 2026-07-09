@@ -153,6 +153,7 @@
 <script setup lang="ts">
 const { items, subtotal, shippingMethod, shippingCost, total, clearCart } = useCart()
 const config = useRuntimeConfig()
+const toast = useToast()
 
 useHead({
   title: 'Checkout — Cosmetics',
@@ -282,11 +283,11 @@ async function processPayment(cardFormData: any) {
       clearCart()
       navigateTo('/thank-you?order=' + (response as any).order_id)
     } else {
-      alert('Payment failed: ' + ((response as any).message || 'Unknown error'))
+      toast.error('Payment failed: ' + ((response as any).message || 'Unknown error'))
     }
   } catch (error) {
     console.error('Payment processing error:', error)
-    alert('There was an error processing your payment. Please check console for details.')
+    toast.error('There was an error processing your payment. Please try again.')
   } finally {
     processing.value = false
   }

@@ -93,8 +93,15 @@ const route = useRoute()
 const { addToCart } = useCart()
 const { getProduct, getProducts } = useWooNuxt()
 
-const slug = route.params.slug as string
-const { data: product } = await useAsyncData(`product-${slug}`, () => getProduct(slug))
+// Reactive slug: Vue Router reuses this component across /product/[slug]
+// navigations, so we key + watch on the param to refetch instead of reading
+// it once at setup (which left related-product links showing stale data).
+const slug = computed(() => route.params.slug as string)
+const { data: product } = await useAsyncData(
+  () => `product-${slug.value}`,
+  () => getProduct(slug.value),
+  { watch: [slug] },
+)
 
 // Structured per-product SEO. Reactive getters so tags follow the product.
 // (Full Yoast head via the plugin's `fullYoastHead` field can layer on top
@@ -123,6 +130,13 @@ const colors = [
   { name: 'Mary Jo K', hex: '#c01e35' },
 ]
 const selectedColor = ref(colors[0])
+
+// Reset view state when the product changes (component is reused across routes).
+watch(product, (p) => {
+  activeImage.value = p?.gallery[0] || p?.image || ''
+  quantity.value = 1
+  selectedColor.value = colors[0]
+})
 
 const { data: _allProducts } = await useAsyncData('related', () => getProducts())
 const relatedProducts = computed(() => {

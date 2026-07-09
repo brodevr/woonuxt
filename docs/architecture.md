@@ -16,6 +16,25 @@ Este documento define la **arquitectura objetivo de producción** antes de escri
 - **Búsqueda con motor dedicado** (Typesense recomendado) sincronizado desde WooCommerce — no MySQL/GraphQL (ver §11).
 - **Deploy en Vercel** (Nitro preset `vercel`), diseño portable a cualquier host Nitro.
 
+### Estado de implementación (rama `claude/push-status-check-714zav`)
+
+Base construida y verificada (tests + build + SSR en cada paso). Lo marcado
+_(base)_ está implementado y testeado pero aún no cableado a un WooCommerce real.
+
+| Fase | Estado | Entregado |
+|---|---|---|
+| **1 — Arquitectura base** | ✅ | `core/http` (GraphQL client) + `core/errors`; servicio de catálogo; Pinia (cart + settings store); primitivo `<Price>` en `components/ui`; scaffold de GraphQL codegen |
+| **2 — Caché / rendimiento** | ✅ | `useCurrency` desde settings reales; SDK de MP solo en checkout; `routeRules` ISR/SWR + Cache-Control; `@nuxt/image`; SEO por producto (`useSeoMeta`) |
+| **3 — Búsqueda** | ✅ (motor pendiente de infra) | Módulo `search/` agnóstico + `MockSearchProvider` + UI (`SearchBox`, `/search`); `shop.vue` servido por el motor; `docs/search.md` con el adapter Typesense |
+| **4 — Store API / carrito** | 🟡 _(base)_ | `storeApiClient` (Cart-Token) + `storeApiCartService` tipado, testeados. Falta cablear el carrito real (necesita WooCommerce). |
+| **5–8** | ⏳ | Auth, checkout/pagos, observabilidad, optimización, producción — requieren backend/infra reales. |
+
+Extras: fix de reactividad en `/product/[slug]`; eliminado el endpoint de debug `/api/test-config`.
+
+Pendiente consciente (necesita infra/criterio): unificar los estilos `kylie`
+divergentes (requiere regresión visual, Fase 8); correr codegen/búsqueda contra
+datos reales; conectar `fullYoastHead`.
+
 ---
 
 ## 1. Estrategia de caché
@@ -130,10 +149,14 @@ storefront/
         services/              # auth.service.ts (WPGraphQL Headless Login / JWT)
         stores/                # useAuthStore
       content/                 # CMS, SEO, páginas estáticas
-    shared/                    # UI reutilizable AGNÓSTICA de dominio
-      ui/                      # Button, Input, Modal, Price, Skeleton... (design system único)
-      composables/             # useCurrency, useFormat, useMediaQuery
-      directives/
+    components/ui/             # UI reutilizable AGNÓSTICA de dominio: Button,
+                               # Input, Price, Skeleton... (design system único).
+                               # Nota: en Nuxt 4 `shared/` es un directorio
+                               # RESERVADO (código app/server) — no puede alojar
+                               # componentes .vue (rompe el build de Nitro). Por
+                               # eso los primitivos UI viven en components/ui.
+      # composables compartidos (useCurrency, useFormat, useMediaQuery) van en
+      # composables/ (auto-import estándar de Nuxt).
     pages/                     # rutas finas: solo orquestan módulos, sin lógica
     layouts/
     plugins/
@@ -146,8 +169,8 @@ storefront/
 
 **Reglas de dependencia (para que no se degrade):**
 - `pages/` → orquesta `modules/`, no contiene lógica de negocio ni fetch directo.
-- `modules/*` → pueden usar `core/` y `shared/`, **no** dependen entre sí directamente (comunican vía stores o eventos). Ej.: checkout lee del cart store, no importa componentes internos de cart.
-- `shared/ui/` → **un solo design system** (elimina la dualidad `main.css` tokens vs estilos `kylie` hardcodeados). Componentes base (`Button`, `Input`, `Price`) que todo el resto reusa.
+- `modules/*` → pueden usar `core/` y los primitivos de `components/ui/`, **no** dependen entre sí directamente (comunican vía stores o eventos). Ej.: checkout lee del cart store, no importa componentes internos de cart.
+- `components/ui/` → **un solo design system** (elimina la dualidad `main.css` tokens vs estilos `kylie` hardcodeados). Componentes base (`Button`, `Input`, `Price`) que todo el resto reusa.
 - `core/` → sin dependencias de dominio; puro plumbing.
 
 Esto convierte el `checkout.vue` de 624 líneas en un módulo con componentes por paso, y el `useWooNuxt` monolítico en servicios por dominio.

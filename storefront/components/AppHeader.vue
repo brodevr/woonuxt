@@ -44,6 +44,7 @@
     <!-- Mobile nav -->
     <Transition name="mobile-nav">
       <div v-if="mobileOpen" class="header__mobile-nav hide-desktop">
+        <SearchBox class="header__mobile-search" />
         <NuxtLink to="/" class="header__mobile-link" @click="mobileOpen = false">Home</NuxtLink>
         <NuxtLink to="/shop" class="header__mobile-link" @click="mobileOpen = false">Shop</NuxtLink>
       </div>
@@ -53,9 +54,15 @@
 
 <script setup lang="ts">
 const { itemCount, openDrawer } = useCart()
+const route = useRoute()
 
 const isScrolled = ref(false)
 const mobileOpen = ref(false)
+
+// Close the mobile menu whenever navigation happens (incl. from search).
+watch(() => route.fullPath, () => {
+  mobileOpen.value = false
+})
 
 onMounted(() => {
   const onScroll = () => {
@@ -185,6 +192,11 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.header__mobile-search {
+  max-width: 100%;
+  margin-bottom: var(--space-2);
 }
 
 .header__mobile-link {

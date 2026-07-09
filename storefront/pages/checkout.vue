@@ -125,25 +125,23 @@
               <div class="k-summary-item-info">
                 <h3>{{ item.product.name }}</h3>
               </div>
-              <div class="k-summary-item-price">
-                {{ formatPrice(item.product.price * item.quantity) }}
-              </div>
+              <Price class="k-summary-item-price" :amount="item.product.price * item.quantity" />
             </div>
           </div>
           
           <div class="k-summary-totals">
             <div class="k-summary-row">
               <span>SUBTOTAL</span>
-              <span>{{ formatPrice(subtotal) }}</span>
+              <Price :amount="subtotal" />
             </div>
             <div class="k-summary-row">
               <span>SHIPPING</span>
               <span v-if="shippingCost === 0">FREE</span>
-              <span v-else>{{ formatPrice(shippingCost) }}</span>
+              <Price v-else :amount="shippingCost" />
             </div>
             <div class="k-summary-row k-summary-total">
               <span>TOTAL</span>
-              <span>{{ formatPrice(total) }}</span>
+              <Price :amount="total" />
             </div>
           </div>
         </div>
@@ -154,7 +152,6 @@
 
 <script setup lang="ts">
 const { items, subtotal, shippingMethod, shippingCost, total, clearCart } = useCart()
-const { formatPrice } = useCurrency()
 const config = useRuntimeConfig()
 
 useHead({

@@ -37,7 +37,7 @@
             <NuxtLink :to="`/product/${item.product.slug}`" class="drawer__item-name" @click="closeDrawer">
               {{ item.product.name }}
             </NuxtLink>
-            <span class="drawer__item-price">{{ formatPrice(item.product.price) }}</span>
+            <Price class="drawer__item-price" :amount="item.product.price" />
             <div class="drawer__item-actions">
               <div class="drawer__qty">
                 <button class="drawer__qty-btn" @click="updateQuantity(item.product.id, item.quantity - 1)" aria-label="Decrease quantity">−</button>
@@ -56,7 +56,7 @@
       <div v-if="items.length > 0" class="drawer__footer">
         <div class="drawer__subtotal">
           <span>Subtotal</span>
-          <span class="font-bold">{{ formatPrice(subtotal) }}</span>
+          <Price class="font-bold" :amount="subtotal" />
         </div>
         <p class="drawer__shipping-note">Shipping calculated at checkout</p>
         <button class="btn btn--primary btn--full btn--lg" @click="goToCheckout">Checkout</button>
@@ -67,7 +67,6 @@
 
 <script setup lang="ts">
 const { items, itemCount, subtotal, isDrawerOpen, closeDrawer, updateQuantity, removeFromCart } = useCart()
-const { formatPrice } = useCurrency()
 
 function goToCheckout() {
   if (items.value.length === 0) return

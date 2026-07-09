@@ -39,9 +39,7 @@
               </div>
             </div>
 
-            <div class="cart-item__price hide-mobile">
-              {{ formatPrice(item.product.price) }}
-            </div>
+            <Price class="cart-item__price hide-mobile" :amount="item.product.price" />
 
             <div class="cart-item__quantity">
               <div class="qty-control">
@@ -51,9 +49,7 @@
               </div>
             </div>
 
-            <div class="cart-item__total hide-mobile">
-              {{ formatPrice(parseFloat(item.product.price) * item.quantity) }}
-            </div>
+            <Price class="cart-item__total hide-mobile" :amount="parseFloat(item.product.price) * item.quantity" />
 
             <button class="cart-item__remove" @click="removeFromCart(item.product.id)" aria-label="Remove item">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -62,9 +58,7 @@
             </button>
 
             <!-- Mobile price -->
-            <div class="cart-item__mobile-price hide-desktop">
-              {{ formatPrice(parseFloat(item.product.price) * item.quantity) }}
-            </div>
+            <Price class="cart-item__mobile-price hide-desktop" :amount="parseFloat(item.product.price) * item.quantity" />
           </div>
         </div>
 
@@ -74,7 +68,7 @@
 
           <div class="summary__row">
             <span>Subtotal</span>
-            <span>{{ formatPrice(subtotal) }}</span>
+            <Price :amount="subtotal" />
           </div>
           <div class="summary__row">
             <span>Shipping</span>
@@ -85,7 +79,7 @@
 
           <div class="summary__row summary__row--total">
             <span>Total</span>
-            <span>{{ formatPrice(subtotal) }}</span>
+            <Price :amount="subtotal" />
           </div>
 
           <NuxtLink to="/checkout" class="btn btn--primary btn--full btn--lg" style="margin-top: var(--space-6);">
@@ -108,7 +102,6 @@ useHead({
 })
 
 const { items, subtotal, updateQuantity, removeFromCart } = useCart()
-const { formatPrice } = useCurrency()
 </script>
 
 <style scoped>

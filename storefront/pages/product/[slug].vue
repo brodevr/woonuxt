@@ -15,8 +15,8 @@
           </NuxtLink>
           <h1 class="kylie-p-name">{{ product.name }}</h1>
           <div class="kylie-p-price">
-            <span v-if="product.salePrice" class="price-old">{{ formatPrice(product.regularPrice!) }}</span>
-            <span class="price-current">{{ formatPrice(product.price) }}</span>
+            <Price v-if="product.salePrice" class="price-old" :amount="product.regularPrice!" />
+            <Price class="price-current" :amount="product.price" />
           </div>
         </div>
 
@@ -90,7 +90,6 @@
 import { useWooNuxt } from '~/composables/useWooNuxt'
 
 const route = useRoute()
-const { formatPrice } = useCurrency()
 const { addToCart } = useCart()
 const { getProduct, getProducts } = useWooNuxt()
 

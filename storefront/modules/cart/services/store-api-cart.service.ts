@@ -15,6 +15,7 @@ export interface StoreApiCartItem {
   id: number
   quantity: number
   name: string
+  permalink: string
   prices: {
     price: string
     regular_price: string

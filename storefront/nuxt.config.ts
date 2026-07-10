@@ -74,6 +74,15 @@ export default defineNuxtConfig({
 
   // Runtime config
   runtimeConfig: {
+    // Server-only: WooCommerce Store API base. The browser never calls this
+    // directly (CORS); it goes through the /api/store proxy (server/api/store).
+    // Derived from the GraphQL URL unless overridden.
+    storeApiUrl:
+      process.env.NUXT_PUBLIC_STORE_API_URL ||
+      (process.env.NUXT_PUBLIC_GRAPHQL_URL || 'http://localhost/graphql').replace(
+        /\/graphql\/?$/,
+        '',
+      ) + '/wp-json/wc/store/v1',
     public: {
       graphqlUrl: process.env.NUXT_PUBLIC_GRAPHQL_URL || 'http://localhost/graphql',
       mercadopagoPublicKey: process.env.NUXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || ''

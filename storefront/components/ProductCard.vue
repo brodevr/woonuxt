@@ -37,9 +37,14 @@ const props = defineProps<{
 }>()
 
 const { addToCart } = useCart()
+const toast = useToast()
 
-function handleQuickAdd() {
-  addToCart(props.product)
+async function handleQuickAdd() {
+  try {
+    await addToCart(props.product)
+  } catch {
+    toast.error(`Could not add ${props.product.name} to your bag.`)
+  }
 }
 </script>
 

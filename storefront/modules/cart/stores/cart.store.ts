@@ -1,84 +1,89 @@
 /**
- * Cart store (Pinia).
+ * Cart store (Pinia) — backed by the WooCommerce Store API.
  *
- * Single source of truth for cart state. Replaces the previous `useState`
- * + manual localStorage handling in useCart. Client-side persistence lives
- * here, guarded by `import.meta.client`. Behavior matches the prior composable
- * exactly; shipping is still computed locally (a hardcoded rule) and will be
- * replaced by real Store API shipping rates in Phase 4.
+ * The cart is now server-authoritative: items, prices, totals, taxes and stock
+ * come from WooCommerce (docs/architecture.md §2), reached through the
+ * same-origin /api/store proxy. The guest session is a Cart-Token kept in a
+ * cookie. Actions are async; getters adapt the raw Store API cart to the shape
+ * the UI consumes (see cart-adapter). Loaded on the client on first use.
  */
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
-import type { CartItem, Product } from '~/data/mock'
-
-const STORAGE_KEY = 'cart'
+import { ref, computed } from 'vue'
+import { createStoreApiClient } from '~/core/http/store-api.client'
+import {
+  createStoreApiCartService,
+  type StoreApiCart,
+} from '~/modules/cart/services/store-api-cart.service'
+import { adaptCart } from '~/modules/cart/services/cart-adapter'
+import type { Product } from '~/data/mock'
 
 export const useCartStore = defineStore('cart', () => {
-  const items = ref<CartItem[]>([])
+  const cart = ref<StoreApiCart | null>(null)
   const isDrawerOpen = ref(false)
-  const shippingMethod = ref('flat_rate')
+  const loading = ref(false)
+  const initialized = ref(false)
 
-  // Restore + persist on the client only (SSR-safe).
-  if (import.meta.client) {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    if (saved) {
-      try {
-        items.value = JSON.parse(saved)
-      } catch {
-        // ignore malformed storage
-      }
-    }
-
-    watch(
-      items,
-      (val) => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(val))
-      },
-      { deep: true },
-    )
-  }
-
-  const itemCount = computed(() => items.value.reduce((sum, item) => sum + item.quantity, 0))
-
-  const subtotal = computed(() =>
-    items.value.reduce((sum, item) => sum + parseFloat(item.product.price) * item.quantity, 0),
-  )
-
-  const shippingCost = computed(() => {
-    if (shippingMethod.value === 'flat_rate') return 5000
-    if (shippingMethod.value === 'local_pickup') return 0
-    return 0
+  // Guest cart session token (no PHP cookies); refreshed from every response.
+  const token = useCookie<string | null>('woonuxt_cart_token', {
+    maxAge: 60 * 60 * 24 * 30,
+    sameSite: 'lax',
   })
 
-  const total = computed(() => subtotal.value + shippingCost.value)
+  const client = createStoreApiClient({
+    baseUrl: '/api/store',
+    getToken: () => token.value ?? null,
+    setToken: (t) => {
+      token.value = t
+    },
+  })
+  const service = createStoreApiCartService(client)
 
-  function addToCart(product: Product, quantity = 1) {
-    const existing = items.value.find((item) => item.product.id === product.id)
-    if (existing) {
-      existing.quantity += quantity
-    } else {
-      items.value.push({ product, quantity })
+  const adapted = computed(() => adaptCart(cart.value))
+  const items = computed(() => adapted.value.items)
+  const itemCount = computed(() => adapted.value.itemCount)
+  const subtotal = computed(() => adapted.value.subtotal)
+  const total = computed(() => adapted.value.total)
+
+  async function run(op: () => Promise<StoreApiCart>) {
+    loading.value = true
+    try {
+      cart.value = await op()
+    } finally {
+      loading.value = false
     }
+  }
+
+  async function fetchCart() {
+    await run(() => service.getCart())
+    initialized.value = true
+  }
+
+  /** Load the cart once, on the client. */
+  async function ensureLoaded() {
+    if (!initialized.value && import.meta.client) {
+      await fetchCart()
+    }
+  }
+
+  async function addToCart(product: Product, quantity = 1) {
+    await run(() => service.addItem(Number(product.id), quantity))
     isDrawerOpen.value = true
   }
 
-  function removeFromCart(productId: string) {
-    items.value = items.value.filter((item) => item.product.id !== productId)
-  }
-
-  function updateQuantity(productId: string, quantity: number) {
-    const item = items.value.find((item) => item.product.id === productId)
-    if (item) {
-      if (quantity <= 0) {
-        removeFromCart(productId)
-      } else {
-        item.quantity = quantity
-      }
+  async function updateQuantity(key: string, quantity: number) {
+    if (quantity <= 0) {
+      return removeFromCart(key)
     }
+    await run(() => service.updateItem(key, quantity))
   }
 
+  async function removeFromCart(key: string) {
+    await run(() => service.removeItem(key))
+  }
+
+  /** Local reset (a completed Store API checkout clears the server cart). */
   function clearCart() {
-    items.value = []
+    cart.value = null
   }
 
   function openDrawer() {
@@ -90,16 +95,19 @@ export const useCartStore = defineStore('cart', () => {
   }
 
   return {
+    cart,
     items,
-    isDrawerOpen,
-    shippingMethod,
     itemCount,
     subtotal,
-    shippingCost,
     total,
+    isDrawerOpen,
+    loading,
+    initialized,
+    fetchCart,
+    ensureLoaded,
     addToCart,
-    removeFromCart,
     updateQuantity,
+    removeFromCart,
     clearCart,
     openDrawer,
     closeDrawer,

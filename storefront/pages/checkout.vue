@@ -67,7 +67,7 @@
                   <input type="radio" v-model="shippingMethod" value="flat_rate" />
                   <div class="k-shipping-details">
                     <span class="k-ship-title">Standard Shipping</span>
-                    <span class="k-ship-price">$5,000.00</span>
+                    <Price class="k-ship-price" :amount="5" />
                   </div>
                 </label>
                 <label class="k-shipping-option" :class="{ 'is-selected': shippingMethod === 'local_pickup' }">
@@ -117,7 +117,7 @@
         <div class="k-summary-box">
           <h2 class="k-summary-title">IN YOUR BAG</h2>
           <div class="k-summary-items">
-            <div v-for="item in items" :key="item.product.id" class="k-summary-item">
+            <div v-for="item in items" :key="item.key" class="k-summary-item">
               <div class="k-summary-item-image">
                 <NuxtImg :src="item.product.image" :alt="item.product.name" loading="lazy" />
                 <span class="k-summary-item-qty">{{ item.quantity }}</span>
@@ -141,7 +141,7 @@
             </div>
             <div class="k-summary-row k-summary-total">
               <span>TOTAL</span>
-              <Price :amount="total" />
+              <Price :amount="grandTotal" />
             </div>
           </div>
         </div>
@@ -151,9 +151,15 @@
 </template>
 
 <script setup lang="ts">
-const { items, subtotal, shippingMethod, shippingCost, total, clearCart } = useCart()
+const { items, subtotal, clearCart } = useCart()
 const config = useRuntimeConfig()
 const toast = useToast()
+
+// Local shipping selection. Real Store API shipping rates (which need an
+// address) land in a later phase; for now this is a client-side estimate.
+const shippingMethod = ref('flat_rate')
+const shippingCost = computed(() => (shippingMethod.value === 'flat_rate' ? 5 : 0))
+const grandTotal = computed(() => subtotal.value + shippingCost.value)
 
 useHead({
   title: 'Checkout — Cosmetics',
@@ -217,7 +223,7 @@ async function renderPaymentBrick() {
   
   await bricksBuilder.create('payment', 'paymentBrick_container', {
     initialization: {
-      amount: total.value,
+      amount: grandTotal.value,
       preferenceId: '<PREFERENCE_ID>'
     },
     customization: {

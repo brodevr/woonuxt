@@ -16,6 +16,7 @@
  * from the real store. Runs during SSR and is serialized to the client via the
  * Pinia + useAsyncData payloads (no client refetch). Falls back to mockSettings.
  */
+import { onMounted } from 'vue'
 import { useSettingsStore } from '~/modules/settings/stores/settings.store'
 
 const settingsStore = useSettingsStore()
@@ -26,4 +27,10 @@ const { data: settings } = await useAsyncData('store-settings', () => getSetting
 if (settings.value) {
   settingsStore.setSettings(settings.value)
 }
+
+// Load the WooCommerce cart (Store API) once on the client.
+const { ensureLoaded } = useCart()
+onMounted(() => {
+  ensureLoaded()
+})
 </script>

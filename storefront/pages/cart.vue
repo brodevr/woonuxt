@@ -28,7 +28,7 @@
           </div>
 
           <!-- Items -->
-          <div v-for="item in items" :key="item.product.id" class="cart-item animate-fade-in-up">
+          <div v-for="item in items" :key="item.key" class="cart-item animate-fade-in-up">
             <div class="cart-item__product">
               <NuxtLink :to="`/product/${item.product.slug}`" class="cart-item__image">
                 <NuxtImg :src="item.product.image" :alt="item.product.name" loading="lazy" />
@@ -43,15 +43,15 @@
 
             <div class="cart-item__quantity">
               <div class="qty-control">
-                <button class="qty-control__btn" @click="updateQuantity(item.product.id, item.quantity - 1)">−</button>
+                <button class="qty-control__btn" @click="updateQuantity(item.key, item.quantity - 1)">−</button>
                 <span class="qty-control__value">{{ item.quantity }}</span>
-                <button class="qty-control__btn" @click="updateQuantity(item.product.id, item.quantity + 1)">+</button>
+                <button class="qty-control__btn" @click="updateQuantity(item.key, item.quantity + 1)">+</button>
               </div>
             </div>
 
             <Price class="cart-item__total hide-mobile" :amount="parseFloat(item.product.price) * item.quantity" />
 
-            <button class="cart-item__remove" @click="removeFromCart(item.product.id)" aria-label="Remove item">
+            <button class="cart-item__remove" @click="removeFromCart(item.key)" aria-label="Remove item">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
               </svg>

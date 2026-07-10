@@ -29,7 +29,7 @@
 
       <!-- Items -->
       <div v-else class="drawer__items">
-        <div v-for="item in items" :key="item.product.id" class="drawer__item">
+        <div v-for="item in items" :key="item.key" class="drawer__item">
           <NuxtLink :to="`/product/${item.product.slug}`" class="drawer__item-image" @click="closeDrawer">
             <NuxtImg :src="item.product.image" :alt="item.product.name" loading="lazy" />
           </NuxtLink>
@@ -40,11 +40,11 @@
             <Price class="drawer__item-price" :amount="item.product.price" />
             <div class="drawer__item-actions">
               <div class="drawer__qty">
-                <button class="drawer__qty-btn" @click="updateQuantity(item.product.id, item.quantity - 1)" aria-label="Decrease quantity">−</button>
+                <button class="drawer__qty-btn" @click="updateQuantity(item.key, item.quantity - 1)" aria-label="Decrease quantity">−</button>
                 <span class="drawer__qty-value">{{ item.quantity }}</span>
-                <button class="drawer__qty-btn" @click="updateQuantity(item.product.id, item.quantity + 1)" aria-label="Increase quantity">+</button>
+                <button class="drawer__qty-btn" @click="updateQuantity(item.key, item.quantity + 1)" aria-label="Increase quantity">+</button>
               </div>
-              <button class="drawer__remove" @click="removeFromCart(item.product.id)" aria-label="Remove item">
+              <button class="drawer__remove" @click="removeFromCart(item.key)" aria-label="Remove item">
                 Remove
               </button>
             </div>

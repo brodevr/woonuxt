@@ -135,3 +135,21 @@ export const GET_CATEGORIES = `
     }
   }
 `
+
+// Instant-search: server-side product search (WooGraphQL `search` arg).
+export const SEARCH_PRODUCTS = `
+  query searchProducts($search: String!, $first: Int) {
+    products(first: $first, where: { search: $search }) {
+      nodes {
+        databaseId
+        name
+        slug
+        image {
+          sourceUrl
+        }
+        ... on SimpleProduct { price }
+        ... on VariableProduct { price }
+      }
+    }
+  }
+`
